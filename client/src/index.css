@@ -2,8 +2,15 @@
 
 /*
  * Registers Tailwind's `dark:` variant to activate via a `.dark` class
- * (e.g. on <html>), instead of only `prefers-color-scheme`. This gets the
- * project ready for a manual light/dark toggle later — no dark styles are
- * applied yet.
+ * (e.g. on <html>), instead of only `prefers-color-scheme`. Toggled by
+ * useTheme.js.
  */
 @custom-variant dark (&:where(.dark, .dark *));
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  transition: background-color 200ms ease-out;
+}
