@@ -7,7 +7,7 @@ const TABS = [
   { id: 'signup', label: 'Sign Up' },
 ]
 
-function AuthCard() {
+function AuthCard({ onAuthenticated }) {
   const [activeTab, setActiveTab] = useState('signin')
 
   return (
@@ -39,9 +39,15 @@ function AuthCard() {
 
       <div role="tabpanel">
         {activeTab === 'signin' ? (
-          <SignInForm onSwitchToSignUp={() => setActiveTab('signup')} />
+          <SignInForm
+            onSwitchToSignUp={() => setActiveTab('signup')}
+            onAuthenticated={onAuthenticated}
+          />
         ) : (
-          <SignUpForm onSwitchToSignIn={() => setActiveTab('signin')} />
+          <SignUpForm
+            onSwitchToSignIn={() => setActiveTab('signin')}
+            onAuthenticated={onAuthenticated}
+          />
         )}
       </div>
     </div>

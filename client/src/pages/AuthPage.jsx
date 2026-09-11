@@ -1,6 +1,6 @@
 import AuthCard from '../components/auth/AuthCard'
 
-function AuthPage() {
+function AuthPage({ onAuthenticated }) {
   return (
     <main className="flex flex-1 items-center justify-center px-4 py-12">
       <div className="flex w-full max-w-md flex-col items-center gap-8">
@@ -13,7 +13,7 @@ function AuthPage() {
           </p>
         </div>
 
-        <AuthCard />
+        <AuthCard onAuthenticated={onAuthenticated} />
       </div>
     </main>
   )

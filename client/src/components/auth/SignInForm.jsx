@@ -1,14 +1,23 @@
 import { useState } from 'react'
 import FormField from './FormField'
+import { MOCK_USER } from '../../mockAuth'
 
-function SignInForm({ onSwitchToSignUp }) {
+function SignInForm({ onSwitchToSignUp, onAuthenticated }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
 
   const handleSubmit = (event) => {
     event.preventDefault()
     // TODO: integrate with the backend, e.g. POST /api/auth/login
     // with { username, password } once the Express/MongoDB API exists.
+    // Until then, check against the hard-coded mock account.
+    if (username === MOCK_USER.username && password === MOCK_USER.password) {
+      setError('')
+      onAuthenticated()
+    } else {
+      setError('Invalid username or password')
+    }
   }
 
   return (
@@ -28,6 +37,12 @@ function SignInForm({ onSwitchToSignUp }) {
         value={password}
         onChange={(event) => setPassword(event.target.value)}
       />
+
+      {error && (
+        <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+          {error}
+        </p>
+      )}
 
       <button
         type="submit"

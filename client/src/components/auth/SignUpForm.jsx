@@ -1,15 +1,24 @@
 import { useState } from 'react'
 import FormField from './FormField'
 
-function SignUpForm({ onSwitchToSignIn }) {
+function SignUpForm({ onSwitchToSignIn, onAuthenticated }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [error, setError] = useState('')
 
   const handleSubmit = (event) => {
     event.preventDefault()
     // TODO: integrate with the backend, e.g. POST /api/auth/signup
     // with { username, password } once the Express/MongoDB API exists.
+    // Until then, just mock a successful account creation + sign-in.
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
+
+    setError('')
+    onAuthenticated()
   }
 
   return (
@@ -37,6 +46,12 @@ function SignUpForm({ onSwitchToSignIn }) {
         value={confirmPassword}
         onChange={(event) => setConfirmPassword(event.target.value)}
       />
+
+      {error && (
+        <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+          {error}
+        </p>
+      )}
 
       <button
         type="submit"
