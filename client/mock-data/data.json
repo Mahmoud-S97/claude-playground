@@ -1,0 +1,88 @@
+{
+  "todos": [
+    {
+      "id": 1,
+      "title": "Ship v2 release",
+      "priority": "high",
+      "subtasks": [
+        {
+          "id": "1-low",
+          "title": "Update changelog",
+          "priority": "low",
+          "completed": true,
+          "dueAt": "2026-09-19T17:00:00"
+        },
+        {
+          "id": "1-medium",
+          "title": "Run regression suite",
+          "priority": "medium",
+          "completed": false,
+          "dueAt": "2026-09-20T12:00:00"
+        },
+        {
+          "id": "1-high",
+          "title": "Tag and deploy to prod",
+          "priority": "high",
+          "completed": false,
+          "dueAt": "2026-09-20T18:00:00"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Plan team offsite",
+      "priority": "medium",
+      "subtasks": [
+        {
+          "id": "2-low",
+          "title": "Collect availability from team",
+          "priority": "low",
+          "completed": false,
+          "dueAt": "2026-09-22T09:00:00"
+        },
+        {
+          "id": "2-medium",
+          "title": "Book venue",
+          "priority": "medium",
+          "completed": false,
+          "dueAt": "2026-09-24T09:00:00"
+        },
+        {
+          "id": "2-high",
+          "title": "Send final itinerary",
+          "priority": "high",
+          "completed": false,
+          "dueAt": "2026-09-26T09:00:00"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Renew business insurance",
+      "priority": "low",
+      "subtasks": [
+        {
+          "id": "3-low",
+          "title": "Gather policy documents",
+          "priority": "low",
+          "completed": true,
+          "dueAt": "2026-09-10T09:00:00"
+        },
+        {
+          "id": "3-medium",
+          "title": "Compare renewal quotes",
+          "priority": "medium",
+          "completed": true,
+          "dueAt": "2026-09-14T09:00:00"
+        },
+        {
+          "id": "3-high",
+          "title": "Submit signed renewal",
+          "priority": "high",
+          "completed": true,
+          "dueAt": "2026-09-18T09:00:00"
+        }
+      ]
+    }
+  ]
+}
