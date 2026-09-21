@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import TodoCard from '../components/TodoCard'
+import { useTypewriter } from '../hooks/useTypewriter'
 import mockData from '../../mock-data/data.json'
 
 const MOTIVATION_SUBTITLES = [
@@ -9,24 +10,6 @@ const MOTIVATION_SUBTITLES = [
 ]
 
 const SUBTITLE_ROTATE_MS = 7000
-
-// Reveals `text` one character at a time, like a terminal typing out a command.
-function useTypewriter(text, speedMs = 35) {
-  const [output, setOutput] = useState('')
-
-  useEffect(() => {
-    let charCount = 0
-    const intervalId = setInterval(() => {
-      charCount += 1
-      setOutput(text.slice(0, charCount))
-      if (charCount >= text.length) clearInterval(intervalId)
-    }, speedMs)
-
-    return () => clearInterval(intervalId)
-  }, [text, speedMs])
-
-  return output
-}
 
 function HomePage() {
   const { todos } = mockData

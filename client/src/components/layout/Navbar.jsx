@@ -1,5 +1,5 @@
-import Logo from './Logo'
-import ThemeToggle from './ThemeToggle'
+import Logo from '../Logo'
+import ThemeToggle from '../theme/ThemeToggle'
 
 function Navbar({ theme, onToggleTheme, isAuthenticated, onLogout }) {
   return (
