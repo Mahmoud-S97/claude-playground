@@ -73,7 +73,7 @@ function LanguageSelector() {
         <ul
           role="listbox"
           aria-label="Available languages"
-          className="absolute right-0 z-20 mt-2 w-36 overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-lg dark:border-neutral-800 dark:bg-neutral-900"
+          className="absolute end-0 z-20 mt-2 w-36 overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-lg dark:border-neutral-800 dark:bg-neutral-900"
         >
           {LANGUAGES.map((language) => {
             const isSelected = language.code === currentLanguage.code

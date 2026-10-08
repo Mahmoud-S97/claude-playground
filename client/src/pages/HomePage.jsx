@@ -67,7 +67,7 @@ function HomePage({ username }) {
               <span aria-hidden="true">{typedSubtitle}</span>
               <span
                 aria-hidden="true"
-                className="ml-0.5 inline-block animate-pulse text-purple-500 dark:text-purple-400"
+                className="ms-0.5 inline-block animate-pulse text-purple-500 dark:text-purple-400"
               >
                 ▍
               </span>

@@ -1,25 +1,28 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import SignInForm from './SignInForm'
 import SignUpForm from './SignUpForm'
 
-const TABS = [
-  { id: 'signin', label: 'Sign In' },
-  { id: 'signup', label: 'Sign Up' },
-]
-
 function AuthCard({ onAuthenticated }) {
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState('signin')
+
+  const tabs = [
+    { id: 'signin', label: t('auth.tabs.signIn') },
+    { id: 'signup', label: t('auth.tabs.signUp') },
+  ]
 
   return (
     <div className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-8 shadow-xl shadow-neutral-200/50 dark:border-neutral-800 dark:bg-neutral-900 dark:shadow-none">
       {/* Navbar-style segmented control for switching between forms */}
-      <div role="tablist" aria-label="Authentication" className="relative mb-8 grid grid-cols-2 rounded-full bg-neutral-100 p-1 dark:bg-neutral-800">
+      <div role="tablist" aria-label={t('auth.tablistLabel')} className="relative mb-8 grid grid-cols-2 rounded-full bg-neutral-100 p-1 dark:bg-neutral-800">
         <span
           aria-hidden="true"
-          className="absolute inset-y-1 left-1 z-0 w-[calc(50%-4px)] rounded-full bg-white shadow-sm transition-transform duration-300 ease-out dark:bg-neutral-700"
-          style={{ transform: activeTab === 'signup' ? 'translateX(100%)' : 'translateX(0)' }}
+          className={`absolute inset-y-1 start-1 z-0 w-[calc(50%-4px)] rounded-full bg-white shadow-sm transition-transform duration-300 ease-out dark:bg-neutral-700 ${
+            activeTab === 'signup' ? 'translate-x-full rtl:-translate-x-full' : 'translate-x-0'
+          }`}
         />
-        {TABS.map((tab) => (
+        {tabs.map((tab) => (
           <button
             key={tab.id}
             type="button"
