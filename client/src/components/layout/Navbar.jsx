@@ -1,3 +1,4 @@
+import LanguageSelector from '../i18n/LanguageSelector'
 import Logo from '../Logo'
 import ThemeToggle from '../theme/ThemeToggle'
 
@@ -7,6 +8,7 @@ function Navbar({ theme, onToggleTheme, isAuthenticated, onLogout }) {
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
         <Logo />
         <div className="flex items-center gap-2">
+          <LanguageSelector />
           <ThemeToggle theme={theme} onToggle={onToggleTheme} />
           {isAuthenticated && (
             <button
