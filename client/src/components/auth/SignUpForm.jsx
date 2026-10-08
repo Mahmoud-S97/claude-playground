@@ -18,7 +18,7 @@ function SignUpForm({ onSwitchToSignIn, onAuthenticated }) {
     }
 
     setError('')
-    onAuthenticated()
+    onAuthenticated(username)
   }
 
   return (

@@ -11,7 +11,14 @@ const MOTIVATION_SUBTITLES = [
 
 const SUBTITLE_ROTATE_MS = 7000
 
-function HomePage() {
+// No "full name" field at signup yet — capitalize the username so it reads
+// like a real name until that's collected.
+function capitalize(value) {
+  if (!value) return value
+  return value.charAt(0).toUpperCase() + value.slice(1)
+}
+
+function HomePage({ username }) {
   const { todos } = mockData
   const [subtitleIndex, setSubtitleIndex] = useState(0)
 
@@ -45,6 +52,11 @@ function HomePage() {
           />
 
           <div className="relative">
+            {username && (
+              <p className="text-sm font-semibold text-purple-600 dark:text-purple-400">
+                Hello, {capitalize(username)} 👋
+              </p>
+            )}
             <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white sm:text-3xl">
               Finish today. Own tomorrow.
             </h1>

@@ -14,7 +14,7 @@ function SignInForm({ onSwitchToSignUp, onAuthenticated }) {
     // Until then, check against the hard-coded mock account.
     if (username === MOCK_USER.username && password === MOCK_USER.password) {
       setError('')
-      onAuthenticated()
+      onAuthenticated(username)
     } else {
       setError('Invalid username or password')
     }
