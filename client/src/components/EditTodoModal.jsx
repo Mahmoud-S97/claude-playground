@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import ConfirmDeleteDialog from './ConfirmDeleteDialog'
 import PriorityButtonGroup from './PriorityButtonGroup'
 
@@ -12,6 +13,7 @@ const inputClasses =
   'w-full rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2 text-sm text-neutral-900 outline-none transition-colors focus:border-transparent focus:ring-2 focus:ring-purple-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white'
 
 function EditTodoModal({ draft, onChange, onApply, onDelete, onClose }) {
+  const { t } = useTranslation()
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
 
   useEffect(() => {
@@ -39,16 +41,16 @@ function EditTodoModal({ draft, onChange, onApply, onDelete, onClose }) {
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={`Edit ${draft.title || 'todo card'}`}
+        aria-label={t('editModal.dialogLabel', { title: draft.title || t('editModal.untitledCard') })}
         onClick={(event) => event.stopPropagation()}
         className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
       >
         <div className="mb-5 flex items-start justify-between gap-3">
-          <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">Edit todo card</h2>
+          <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">{t('editModal.title')}</h2>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t('common.close')}
             className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="h-4 w-4">
@@ -60,7 +62,7 @@ function EditTodoModal({ draft, onChange, onApply, onDelete, onClose }) {
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="todo-card-title" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-              Card title
+              {t('editModal.cardTitleLabel')}
             </label>
             <input
               id="todo-card-title"
@@ -72,7 +74,9 @@ function EditTodoModal({ draft, onChange, onApply, onDelete, onClose }) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Card-Level Priority</span>
+            <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+              {t('editModal.cardPriorityLabel')}
+            </span>
             <PriorityButtonGroup
               value={draft.priority}
               onChange={(value) => onChange({ ...draft, priority: value })}
@@ -86,7 +90,7 @@ function EditTodoModal({ draft, onChange, onApply, onDelete, onClose }) {
                   htmlFor={`todo-task-${index}-title`}
                   className="text-sm font-medium text-neutral-700 dark:text-neutral-300"
                 >
-                  Task {index + 1}
+                  {t('editModal.taskLabel', { number: index + 1 })}
                 </label>
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <input
@@ -114,7 +118,7 @@ function EditTodoModal({ draft, onChange, onApply, onDelete, onClose }) {
 
           <div className="flex items-center justify-between rounded-lg bg-neutral-100 px-4 py-3 dark:bg-neutral-800">
             <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-              Mark card as Finished
+              {t('editModal.markFinished')}
             </span>
             <button
               type="button"
@@ -140,7 +144,7 @@ function EditTodoModal({ draft, onChange, onApply, onDelete, onClose }) {
             onClick={() => setIsConfirmingDelete(true)}
             className="rounded-lg border border-rose-300 px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-950/50"
           >
-            Delete
+            {t('common.delete')}
           </button>
           <div className="flex items-center gap-2">
             <button
@@ -148,14 +152,14 @@ function EditTodoModal({ draft, onChange, onApply, onDelete, onClose }) {
               onClick={onClose}
               className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="button"
               onClick={onApply}
               className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-700 active:bg-purple-800"
             >
-              Apply Changes
+              {t('common.applyChanges')}
             </button>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import EditTodoModal from './EditTodoModal'
 
 const PRIORITY_ORDER = ['low', 'medium', 'high']
@@ -27,6 +28,7 @@ function formatDueAt(dueAt) {
 }
 
 function TodoCard({ todo }) {
+  const { t } = useTranslation()
   const [title, setTitle] = useState(todo.title)
   const [priority, setPriority] = useState(todo.priority)
   const [subtasks, setSubtasks] = useState(() =>
@@ -98,7 +100,7 @@ function TodoCard({ todo }) {
         <div className="mb-1 flex items-center justify-between gap-3">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <span
-              title={`${priority} priority`}
+              title={t('todoCard.priorityTitle', { priority: t(`priority.${priority}`) })}
               className={`h-2 w-2 flex-shrink-0 rounded-full ${PRIORITY_DOT[priority]}`}
             />
             <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-neutral-900 dark:text-white">
@@ -112,7 +114,7 @@ function TodoCard({ todo }) {
                 : 'bg-neutral-500/10 text-neutral-500 dark:text-neutral-400'
             }`}
           >
-            {isFinished ? 'Finished' : `${doneCount}/${subtasks.length}`}
+            {isFinished ? t('todoCard.finished') : `${doneCount}/${subtasks.length}`}
           </span>
         </div>
 
@@ -122,7 +124,9 @@ function TodoCard({ todo }) {
               <button
                 type="button"
                 aria-pressed={task.completed}
-                aria-label={`Mark "${task.title}" as ${task.completed ? 'not done' : 'done'}`}
+                aria-label={t(task.completed ? 'todoCard.markNotDone' : 'todoCard.markDone', {
+                  title: task.title,
+                })}
                 onClick={(event) => toggleTask(event, index)}
                 className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full transition-colors ${
                   task.completed
@@ -157,9 +161,9 @@ function TodoCard({ todo }) {
 
               <span className="flex flex-shrink-0 items-center gap-2">
                 <span
-                  className={`inline-flex items-center rounded-full px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wide capitalize ${PRIORITY_STYLES[task.priority]}`}
+                  className={`inline-flex items-center rounded-full px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wide ${PRIORITY_STYLES[task.priority]}`}
                 >
-                  {task.priority}
+                  {t(`priority.${task.priority}`)}
                 </span>
                 <span className="flex items-center gap-1 text-xs font-medium text-neutral-500 dark:text-neutral-400">
                   <svg

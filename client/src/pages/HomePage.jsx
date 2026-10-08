@@ -1,13 +1,8 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import TodoCard from '../components/TodoCard'
 import { useTypewriter } from '../hooks/useTypewriter'
 import mockData from '../../mock-data/data.json'
-
-const MOTIVATION_SUBTITLES = [
-  'One task at a time — every box you check moves you closer to a done day.',
-  "Progress isn't loud — it's just today's list, finished one item at a time.",
-  'Future you is built by what you finish today, not what you plan for tomorrow.',
-]
 
 const SUBTITLE_ROTATE_MS = 7000
 
@@ -19,17 +14,21 @@ function capitalize(value) {
 }
 
 function HomePage({ username }) {
+  const { t } = useTranslation()
   const { todos } = mockData
   const [subtitleIndex, setSubtitleIndex] = useState(0)
 
+  const subtitles = t('home.subtitles', { returnObjects: true })
+  const subtitleCount = subtitles.length
+
   useEffect(() => {
     const intervalId = setInterval(() => {
-      setSubtitleIndex((current) => (current + 1) % MOTIVATION_SUBTITLES.length)
+      setSubtitleIndex((current) => (current + 1) % subtitleCount)
     }, SUBTITLE_ROTATE_MS)
     return () => clearInterval(intervalId)
-  }, [])
+  }, [subtitleCount])
 
-  const subtitle = MOTIVATION_SUBTITLES[subtitleIndex]
+  const subtitle = subtitles[subtitleIndex % subtitleCount]
   const typedSubtitle = useTypewriter(subtitle)
 
   return (
@@ -54,11 +53,11 @@ function HomePage({ username }) {
           <div className="relative">
             {username && (
               <p className="text-sm font-semibold text-purple-600 dark:text-purple-400">
-                Hello, {capitalize(username)} 👋
+                {t('home.greeting', { name: capitalize(username) })}
               </p>
             )}
             <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white sm:text-3xl">
-              Finish today. Own tomorrow.
+              {t('home.headline')}
             </h1>
             <p
               aria-label={subtitle}

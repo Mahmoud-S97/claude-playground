@@ -24,5 +24,53 @@
       "hasAccount": "Already have an account?",
       "signInLink": "Sign In"
     }
+  },
+  "common": {
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "yes": "Yes",
+    "applyChanges": "Apply Changes",
+    "close": "Close"
+  },
+  "priority": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High"
+  },
+  "nav": {
+    "logout": "Log out",
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode",
+    "selectLanguage": "Select language",
+    "availableLanguages": "Available languages"
+  },
+  "home": {
+    "greeting": "Hello, {{name}} 👋",
+    "headline": "Finish today. Own tomorrow.",
+    "subtitles": [
+      "One task at a time — every box you check moves you closer to a done day.",
+      "Progress isn't loud — it's just today's list, finished one item at a time.",
+      "Future you is built by what you finish today, not what you plan for tomorrow."
+    ]
+  },
+  "todoCard": {
+    "finished": "Finished",
+    "priorityTitle": "{{priority}} priority",
+    "markDone": "Mark \"{{title}}\" as done",
+    "markNotDone": "Mark \"{{title}}\" as not done"
+  },
+  "editModal": {
+    "title": "Edit todo card",
+    "dialogLabel": "Edit {{title}}",
+    "untitledCard": "todo card",
+    "cardTitleLabel": "Card title",
+    "cardPriorityLabel": "Card-Level Priority",
+    "taskLabel": "Task {{number}}",
+    "markFinished": "Mark card as Finished"
+  },
+  "confirmDelete": {
+    "ariaLabel": "Confirm delete",
+    "title": "Delete this todo card?",
+    "description": "This removes the card and all 3 tasks. This can't be undone."
   }
 }

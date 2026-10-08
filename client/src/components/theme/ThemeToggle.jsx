@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 function SunIcon(props) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -16,14 +18,16 @@ function MoonIcon(props) {
 }
 
 function ThemeToggle({ theme, onToggle }) {
+  const { t } = useTranslation()
   const isDark = theme === 'dark'
+  const label = t(isDark ? 'nav.switchToLight' : 'nav.switchToDark')
 
   return (
     <button
       type="button"
       onClick={onToggle}
-      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-      title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      aria-label={label}
+      title={label}
       className="flex h-9 w-9 items-center justify-center rounded-full text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white"
     >
       {isDark ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
