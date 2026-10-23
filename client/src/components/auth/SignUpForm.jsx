@@ -1,28 +1,61 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { ApiError, signUp } from '../../api/authApi'
 import FormField from './FormField'
+
+// Starts with a letter, then only letters/underscores, 7+ characters total.
+const USERNAME_PATTERN = /^[A-Za-z][A-Za-z_]{6,}$/
+
+function isValidPassword(password) {
+  return password.length >= 6 && !/\s/.test(password)
+}
 
 function SignUpForm({ onSwitchToSignIn, onAuthenticated }) {
   const { t } = useTranslation()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  // Stores whether to show the error, not the translated text itself, so the
-  // message re-translates automatically if the language changes while it's visible.
-  const [hasError, setHasError] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  // Stores which message to show, not the translated text itself, so it
+  // re-translates automatically if the language changes while it's visible.
+  const [errorKey, setErrorKey] = useState(null)
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    // TODO: integrate with the backend, e.g. POST /api/auth/signup
-    // with { username, password } once the Express/MongoDB API exists.
-    // Until then, just mock a successful account creation + sign-in.
-    if (password !== confirmPassword) {
-      setHasError(true)
+
+    const trimmedUsername = username.trim()
+    const trimmedPassword = password.trim()
+    const trimmedConfirmPassword = confirmPassword.trim()
+
+    if (!USERNAME_PATTERN.test(trimmedUsername)) {
+      setErrorKey('auth.signUp.usernameInvalid')
       return
     }
 
-    setHasError(false)
-    onAuthenticated(username)
+    if (!isValidPassword(trimmedPassword)) {
+      setErrorKey('auth.signUp.passwordInvalid')
+      return
+    }
+
+    if (trimmedPassword !== trimmedConfirmPassword) {
+      setErrorKey('auth.signUp.passwordMismatch')
+      return
+    }
+
+    setErrorKey(null)
+    setIsSubmitting(true)
+    try {
+      await signUp(trimmedUsername, trimmedPassword)
+      onAuthenticated(trimmedUsername)
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        setErrorKey('auth.signUp.usernameTaken')
+      } else {
+        setErrorKey('auth.signUp.serverError')
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -51,17 +84,18 @@ function SignUpForm({ onSwitchToSignIn, onAuthenticated }) {
         onChange={(event) => setConfirmPassword(event.target.value)}
       />
 
-      {hasError && (
+      {errorKey && (
         <p className="text-sm text-red-600 dark:text-red-400" role="alert">
-          {t('auth.signUp.passwordMismatch')}
+          {t(errorKey)}
         </p>
       )}
 
       <button
         type="submit"
-        className="mt-1 w-full rounded-lg bg-purple-600 py-2.5 font-medium text-white transition-colors hover:bg-purple-700 active:bg-purple-800"
+        disabled={isSubmitting}
+        className="mt-1 w-full rounded-lg bg-purple-600 py-2.5 font-medium text-white transition-colors hover:bg-purple-700 active:bg-purple-800 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {t('auth.signUp.submit')}
+        {isSubmitting ? t('auth.signUp.submitting') : t('auth.signUp.submit')}
       </button>
 
       <p className="text-center text-sm text-neutral-500 dark:text-neutral-400">

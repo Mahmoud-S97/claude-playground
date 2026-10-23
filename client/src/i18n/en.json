@@ -22,7 +22,12 @@
       "submit": "Create Account",
       "passwordMismatch": "Passwords do not match",
       "hasAccount": "Already have an account?",
-      "signInLink": "Sign In"
+      "signInLink": "Sign In",
+      "usernameInvalid": "Username must start with a letter and contain only letters and underscores, at least 7 characters long",
+      "passwordInvalid": "Password must be at least 6 characters, with no spaces",
+      "usernameTaken": "This username is already taken",
+      "serverError": "Something went wrong. Please try again",
+      "submitting": "Creating account…"
     }
   },
   "common": {
