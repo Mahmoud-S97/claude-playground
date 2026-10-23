@@ -8,13 +8,13 @@ export class ApiError extends Error {
   }
 }
 
-export async function signUp(username, password) {
+async function postJson(path, body) {
   let response
   try {
-    response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+    response = await fetch(`${API_BASE_URL}${path}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify(body),
     })
   } catch {
     throw new ApiError('Network request failed', 0)
@@ -27,4 +27,12 @@ export async function signUp(username, password) {
   }
 
   return data
+}
+
+export function signUp(username, password) {
+  return postJson('/api/auth/signup', { username, password })
+}
+
+export function login(username, password) {
+  return postJson('/api/auth/login', { username, password })
 }

@@ -37,3 +37,33 @@ export async function signUp(req, res) {
     return res.status(500).json({ message: "Something went wrong, please try again" });
   }
 }
+
+export async function logIn(req, res) {
+  const username = req.body.username?.trim();
+  const password = req.body.password;
+
+  if (!username || !password) {
+    return res.status(400).json({ message: "Username and password are required" });
+  }
+
+  try {
+    const user = await User.findOne({ username }).select("+password");
+    if (!user) {
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
+
+    return res.status(200).json({
+      id: user._id,
+      username: user.username,
+      createdAt: user.createdAt,
+    });
+  } catch (error) {
+    console.error("Login failed:", error);
+    return res.status(500).json({ message: "Something went wrong, please try again" });
+  }
+}

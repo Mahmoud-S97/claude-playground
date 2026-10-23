@@ -2,13 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ApiError, signUp } from '../../api/authApi'
 import FormField from './FormField'
-
-// Starts with a letter, then only letters/underscores, 7+ characters total.
-const USERNAME_PATTERN = /^[A-Za-z][A-Za-z_]{6,}$/
-
-function isValidPassword(password) {
-  return password.length >= 6 && !/\s/.test(password)
-}
+import { isValidPassword, USERNAME_PATTERN } from './validation'
 
 function SignUpForm({ onSwitchToSignIn, onAuthenticated }) {
   const { t } = useTranslation()
