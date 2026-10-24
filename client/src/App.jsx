@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { getCurrentUser, logout } from './api/authApi'
 import Navbar from './components/layout/Navbar'
 import { useTheme } from './hooks/useTheme'
 import AuthPage from './pages/AuthPage'
@@ -6,20 +7,33 @@ import HomePage from './pages/HomePage'
 
 function App() {
   const { theme, toggleTheme } = useTheme()
-  // Hard-coded auth flag (no backend yet) — flips Auth-Page <-> Home-Page.
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
   // No "full name" field yet — until signup collects one, the username
-  // entered at sign-in/sign-up doubles as the display name.
-  const [username, setUsername] = useState('')
+  // doubles as the display name.
+  const [username, setUsername] = useState(null)
+  const [isCheckingSession, setIsCheckingSession] = useState(true)
+  const isAuthenticated = username !== null
 
-  function handleAuthenticated(enteredUsername) {
-    setUsername(enteredUsername)
-    setIsAuthenticated(true)
-  }
+  useEffect(() => {
+    let ignore = false
+    getCurrentUser()
+      .then((user) => {
+        if (!ignore) setUsername(user?.username ?? null)
+      })
+      .catch(() => {
+        if (!ignore) setUsername(null)
+      })
+      .finally(() => {
+        if (!ignore) setIsCheckingSession(false)
+      })
+    return () => {
+      ignore = true
+    }
+  }, [])
 
-  function handleLogout() {
-    setIsAuthenticated(false)
-    setUsername('')
+  async function handleLogout() {
+    // Log out locally even if the request fails; the cookie expires on its own.
+    await logout().catch(() => {})
+    setUsername(null)
   }
 
   return (
@@ -30,10 +44,12 @@ function App() {
         isAuthenticated={isAuthenticated}
         onLogout={handleLogout}
       />
-      {isAuthenticated ? (
+      {isCheckingSession ? (
+        <main className="flex-1" aria-busy="true" />
+      ) : isAuthenticated ? (
         <HomePage username={username} />
       ) : (
-        <AuthPage onAuthenticated={handleAuthenticated} />
+        <AuthPage onAuthenticated={setUsername} />
       )}
     </div>
   )

@@ -1,8 +1,17 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
+import { clearAuthCookie, issueAuthCookie } from "../utils/authCookie.js";
 
 const SALT_ROUNDS = 10;
 const MIN_PASSWORD_LENGTH = 6;
+
+function toPublicUser(user) {
+  return {
+    id: user._id,
+    username: user.username,
+    createdAt: user.createdAt,
+  };
+}
 
 export async function signUp(req, res) {
   const username = req.body.username?.trim();
@@ -27,11 +36,8 @@ export async function signUp(req, res) {
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
     const user = await User.create({ username, password: hashedPassword });
 
-    return res.status(201).json({
-      id: user._id,
-      username: user.username,
-      createdAt: user.createdAt,
-    });
+    issueAuthCookie(res, user._id);
+    return res.status(201).json(toPublicUser(user));
   } catch (error) {
     console.error("Sign up failed:", error);
     return res.status(500).json({ message: "Something went wrong, please try again" });
@@ -57,13 +63,19 @@ export async function logIn(req, res) {
       return res.status(401).json({ message: "Invalid username or password" });
     }
 
-    return res.status(200).json({
-      id: user._id,
-      username: user.username,
-      createdAt: user.createdAt,
-    });
+    issueAuthCookie(res, user._id);
+    return res.status(200).json(toPublicUser(user));
   } catch (error) {
     console.error("Login failed:", error);
     return res.status(500).json({ message: "Something went wrong, please try again" });
   }
+}
+
+export function getMe(req, res) {
+  return res.status(200).json(toPublicUser(req.user));
+}
+
+export function logOut(req, res) {
+  clearAuthCookie(res);
+  return res.status(204).end();
 }

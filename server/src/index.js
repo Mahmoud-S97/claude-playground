@@ -1,6 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import cors from "cors";
+import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import express from "express";
 import { connectDB } from "./config/db.js";
@@ -15,10 +15,8 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Dev-only: wide open so the Vite client (whatever port it lands on) can
-// reach the API. Scope this to the real client origin before deploying.
-app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 app.get("/", (req, res) => {
   res.send("Todo API is running");
@@ -27,6 +25,9 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 
 async function startServer() {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is not set in server/.env");
+  }
   await connectDB();
   app.listen(PORT, () => {
     console.log(`Server listening on http://localhost:${PORT}`);
