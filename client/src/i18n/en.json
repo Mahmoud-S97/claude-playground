@@ -10,15 +10,17 @@
     "fields": {
       "username": "Username",
       "password": "Password",
-      "confirmPassword": "Confirm Password"
+      "confirmPassword": "Confirm Password",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password"
     },
     "signIn": {
       "submit": "Sign In",
       "error": "Invalid username or password",
       "noAccount": "Don't have an account?",
       "signUpLink": "Sign Up",
-      "usernameInvalid": "Username must start with a letter and contain only letters and underscores, at least 7 characters long",
-      "passwordInvalid": "Password must be at least 6 characters, with no spaces",
+      "usernameInvalid": "Username must start with a letter and contain only letters, numbers, or underscores (7–25 characters)",
+      "passwordInvalid": "Password must be 6–25 characters, with no spaces",
       "serverError": "Something went wrong. Please try again",
       "submitting": "Signing in…"
     },
@@ -27,8 +29,8 @@
       "passwordMismatch": "Passwords do not match",
       "hasAccount": "Already have an account?",
       "signInLink": "Sign In",
-      "usernameInvalid": "Username must start with a letter and contain only letters and underscores, at least 7 characters long",
-      "passwordInvalid": "Password must be at least 6 characters, with no spaces",
+      "usernameInvalid": "Username must start with a letter and contain only letters, numbers, or underscores (7–25 characters)",
+      "passwordInvalid": "Password must be 6–25 characters, with no spaces",
       "usernameTaken": "This username is already taken",
       "serverError": "Something went wrong. Please try again",
       "submitting": "Creating account…"

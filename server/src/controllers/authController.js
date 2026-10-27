@@ -1,9 +1,9 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import { clearAuthCookie, issueAuthCookie } from "../utils/authCookie.js";
+import { isValidPassword, USERNAME_PATTERN } from "../utils/validation.js";
 
 const SALT_ROUNDS = 10;
-const MIN_PASSWORD_LENGTH = 6;
 
 function toPublicUser(user) {
   return {
@@ -15,16 +15,21 @@ function toPublicUser(user) {
 
 export async function signUp(req, res) {
   const username = req.body.username?.trim();
-  const password = req.body.password;
+  const password = req.body.password?.trim();
 
   if (!username || !password) {
     return res.status(400).json({ message: "Username and password are required" });
   }
 
-  if (password.length < MIN_PASSWORD_LENGTH) {
+  if (!USERNAME_PATTERN.test(username)) {
     return res.status(400).json({
-      message: `Password must be at least ${MIN_PASSWORD_LENGTH} characters`,
+      message:
+        "Username must start with a letter and contain only letters, numbers, or underscores (7–25 characters)",
     });
+  }
+
+  if (!isValidPassword(password)) {
+    return res.status(400).json({ message: "Password must be 6–25 characters, with no spaces" });
   }
 
   try {
@@ -46,7 +51,7 @@ export async function signUp(req, res) {
 
 export async function logIn(req, res) {
   const username = req.body.username?.trim();
-  const password = req.body.password;
+  const password = req.body.password?.trim();
 
   if (!username || !password) {
     return res.status(400).json({ message: "Username and password are required" });

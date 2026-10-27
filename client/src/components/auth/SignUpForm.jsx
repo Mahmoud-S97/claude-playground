@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ApiError, signUp } from '../../api/authApi'
 import FormField from './FormField'
-import { isValidPassword, USERNAME_PATTERN } from './validation'
+import { isValidPassword, MAX_FIELD_LENGTH, USERNAME_PATTERN } from './validation'
 
 function SignUpForm({ onSwitchToSignIn, onAuthenticated }) {
   const { t } = useTranslation()
@@ -58,6 +58,7 @@ function SignUpForm({ onSwitchToSignIn, onAuthenticated }) {
         id="signup-username"
         label={t('auth.fields.username')}
         autoComplete="username"
+        maxLength={MAX_FIELD_LENGTH}
         value={username}
         onChange={(event) => setUsername(event.target.value)}
       />
@@ -66,6 +67,7 @@ function SignUpForm({ onSwitchToSignIn, onAuthenticated }) {
         label={t('auth.fields.password')}
         type="password"
         autoComplete="new-password"
+        maxLength={MAX_FIELD_LENGTH}
         value={password}
         onChange={(event) => setPassword(event.target.value)}
       />
@@ -74,6 +76,7 @@ function SignUpForm({ onSwitchToSignIn, onAuthenticated }) {
         label={t('auth.fields.confirmPassword')}
         type="password"
         autoComplete="new-password"
+        maxLength={MAX_FIELD_LENGTH}
         value={confirmPassword}
         onChange={(event) => setConfirmPassword(event.target.value)}
       />
