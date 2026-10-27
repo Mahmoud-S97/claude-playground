@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ApiError, signUp } from '../../api/authApi'
+import { ApiError } from '../../api/authApi'
+import { useAuth } from '../../hooks/auth/useAuth'
 import FormField from './FormField'
 import { isValidPassword, MAX_FIELD_LENGTH, USERNAME_PATTERN } from './validation'
 
-function SignUpForm({ onSwitchToSignIn, onAuthenticated }) {
+function SignUpForm({ onSwitchToSignIn }) {
   const { t } = useTranslation()
+  const { signUp } = useAuth()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -40,7 +42,6 @@ function SignUpForm({ onSwitchToSignIn, onAuthenticated }) {
     setIsSubmitting(true)
     try {
       await signUp(trimmedUsername, trimmedPassword)
-      onAuthenticated(trimmedUsername)
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
         setErrorKey('auth.signUp.usernameTaken')

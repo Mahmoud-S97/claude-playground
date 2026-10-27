@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ApiError, login } from '../../api/authApi'
+import { ApiError } from '../../api/authApi'
+import { useAuth } from '../../hooks/auth/useAuth'
 import FormField from './FormField'
 import { isValidPassword, MAX_FIELD_LENGTH, USERNAME_PATTERN } from './validation'
 
-function SignInForm({ onSwitchToSignUp, onAuthenticated }) {
+function SignInForm({ onSwitchToSignUp }) {
   const { t } = useTranslation()
+  const { login } = useAuth()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -32,8 +34,7 @@ function SignInForm({ onSwitchToSignUp, onAuthenticated }) {
     setErrorKey(null)
     setIsSubmitting(true)
     try {
-      const user = await login(trimmedUsername, trimmedPassword)
-      onAuthenticated(user.username)
+      await login(trimmedUsername, trimmedPassword)
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         setErrorKey('auth.signIn.error')

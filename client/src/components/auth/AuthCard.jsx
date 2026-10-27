@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import SignInForm from './SignInForm'
 import SignUpForm from './SignUpForm'
 
-function AuthCard({ onAuthenticated }) {
+function AuthCard() {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState('signin')
 
@@ -42,15 +42,9 @@ function AuthCard({ onAuthenticated }) {
 
       <div role="tabpanel">
         {activeTab === 'signin' ? (
-          <SignInForm
-            onSwitchToSignUp={() => setActiveTab('signup')}
-            onAuthenticated={onAuthenticated}
-          />
+          <SignInForm onSwitchToSignUp={() => setActiveTab('signup')} />
         ) : (
-          <SignUpForm
-            onSwitchToSignIn={() => setActiveTab('signin')}
-            onAuthenticated={onAuthenticated}
-          />
+          <SignUpForm onSwitchToSignIn={() => setActiveTab('signin')} />
         )}
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import TodoCard from '../components/TodoCard'
+import { useAuth } from '../hooks/auth/useAuth'
 import { useTypewriter } from '../hooks/useTypewriter'
 import mockData from '../../mock-data/data.json'
 
@@ -13,8 +14,10 @@ function capitalize(value) {
   return value.charAt(0).toUpperCase() + value.slice(1)
 }
 
-function HomePage({ username }) {
+function HomePage() {
   const { t } = useTranslation()
+  const { user } = useAuth()
+  const username = user?.username
   const { todos } = mockData
   const [subtitleIndex, setSubtitleIndex] = useState(0)
 

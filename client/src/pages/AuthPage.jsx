@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import AuthCard from '../components/auth/AuthCard'
 
-function AuthPage({ onAuthenticated }) {
+function AuthPage() {
   const { t } = useTranslation()
 
   return (
@@ -16,7 +16,7 @@ function AuthPage({ onAuthenticated }) {
           </p>
         </div>
 
-        <AuthCard onAuthenticated={onAuthenticated} />
+        <AuthCard />
       </div>
     </main>
   )
