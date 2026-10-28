@@ -58,6 +58,7 @@
   "home": {
     "greeting": "Hello, {{name}} 👋",
     "headline": "Finish today. Own tomorrow.",
+    "addTodo": "Add new task",
     "subtitles": [
       "One task at a time — every box you check moves you closer to a done day.",
       "Progress isn't loud — it's just today's list, finished one item at a time.",
@@ -72,6 +73,7 @@
   },
   "editModal": {
     "title": "Edit todo card",
+    "addTitle": "Add todo card",
     "dialogLabel": "Edit {{title}}",
     "untitledCard": "todo card",
     "cardTitleLabel": "Card title",

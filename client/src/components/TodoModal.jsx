@@ -12,9 +12,15 @@ function toDateTimeLocalValue(dueAt) {
 const inputClasses =
   'w-full rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2 text-sm text-neutral-900 outline-none transition-colors focus:border-transparent focus:ring-2 focus:ring-purple-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white'
 
-function EditTodoModal({ draft, onChange, onApply, onDelete, onClose }) {
+// mode "add": a new, unsaved card (no Delete). mode "edit": an existing card.
+function TodoModal({ mode = 'edit', draft, onChange, onApply, onDelete, onClose }) {
   const { t } = useTranslation()
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
+  const isAddMode = mode === 'add'
+  const title = isAddMode ? t('editModal.addTitle') : t('editModal.title')
+  const dialogLabel = isAddMode
+    ? title
+    : t('editModal.dialogLabel', { title: draft.title || t('editModal.untitledCard') })
 
   useEffect(() => {
     function handleKeyDown(event) {
@@ -41,12 +47,12 @@ function EditTodoModal({ draft, onChange, onApply, onDelete, onClose }) {
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={t('editModal.dialogLabel', { title: draft.title || t('editModal.untitledCard') })}
+        aria-label={dialogLabel}
         onClick={(event) => event.stopPropagation()}
         className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
       >
         <div className="mb-5 flex items-start justify-between gap-3">
-          <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">{t('editModal.title')}</h2>
+          <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">{title}</h2>
           <button
             type="button"
             onClick={onClose}
@@ -138,15 +144,17 @@ function EditTodoModal({ draft, onChange, onApply, onDelete, onClose }) {
           </div>
         </div>
 
-        <div className="mt-6 flex items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={() => setIsConfirmingDelete(true)}
-            className="rounded-lg border border-rose-300 px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-950/50"
-          >
-            {t('common.delete')}
-          </button>
-          <div className="flex items-center gap-2">
+        <div className="mt-6 flex items-center gap-3">
+          {!isAddMode && (
+            <button
+              type="button"
+              onClick={() => setIsConfirmingDelete(true)}
+              className="rounded-lg border border-rose-300 px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-950/50"
+            >
+              {t('common.delete')}
+            </button>
+          )}
+          <div className="ms-auto flex items-center gap-2">
             <button
               type="button"
               onClick={onClose}
@@ -172,4 +180,4 @@ function EditTodoModal({ draft, onChange, onApply, onDelete, onClose }) {
   )
 }
 
-export default EditTodoModal
+export default TodoModal

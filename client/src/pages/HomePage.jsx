@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import FloatingActionButton from '../components/FloatingActionButton'
+import PlusIcon from '../components/icons/PlusIcon'
 import TodoCard from '../components/TodoCard'
+import TodoModal from '../components/TodoModal'
+import { createEmptyTodoDraft, draftToTodo } from '../components/todoDraft'
 import { useAuth } from '../hooks/auth/useAuth'
 import { useTypewriter } from '../hooks/useTypewriter'
 import mockData from '../../mock-data/data.json'
@@ -18,8 +22,15 @@ function HomePage() {
   const { t } = useTranslation()
   const { user } = useAuth()
   const username = user?.username
-  const { todos } = mockData
+  // Front-end only for now: new cards live in local state until the todos API exists.
+  const [todos, setTodos] = useState(mockData.todos)
+  const [newTodoDraft, setNewTodoDraft] = useState(null)
   const [subtitleIndex, setSubtitleIndex] = useState(0)
+
+  function addTodo() {
+    setTodos((current) => [...current, draftToTodo(newTodoDraft)])
+    setNewTodoDraft(null)
+  }
 
   const subtitles = t('home.subtitles', { returnObjects: true })
   const subtitleCount = subtitles.length
@@ -35,7 +46,7 @@ function HomePage() {
   const typedSubtitle = useTypewriter(subtitle)
 
   return (
-    <main className="flex flex-1 flex-col items-center py-12">
+    <main className="flex flex-1 flex-col items-center pt-12 pb-28">
       <div className="w-full max-w-5xl px-4">
         <section
           className="relative overflow-hidden rounded-2xl border border-white/60 bg-gradient-to-br from-purple-100 via-sky-50 to-rose-50 px-6 py-8
@@ -86,6 +97,20 @@ function HomePage() {
           </div>
         </div>
       </div>
+
+      <FloatingActionButton label={t('home.addTodo')} onClick={() => setNewTodoDraft(createEmptyTodoDraft())}>
+        <PlusIcon className="h-7 w-7" />
+      </FloatingActionButton>
+
+      {newTodoDraft && (
+        <TodoModal
+          mode="add"
+          draft={newTodoDraft}
+          onChange={setNewTodoDraft}
+          onApply={addTodo}
+          onClose={() => setNewTodoDraft(null)}
+        />
+      )}
     </main>
   )
 }
