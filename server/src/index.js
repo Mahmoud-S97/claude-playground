@@ -4,7 +4,9 @@ import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import express from "express";
 import { connectDB } from "./config/db.js";
+import { apiNotFound, errorHandler } from "./middleware/errorHandlers.js";
 import authRoutes from "./routes/authRoutes.js";
+import todoRoutes from "./routes/todoRoutes.js";
 
 // Load server/.env by its real location, not by whatever directory the
 // process happens to be launched from (dotenv/config defaults to cwd-relative,
@@ -23,6 +25,9 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/todos", todoRoutes);
+app.use("/api", apiNotFound);
+app.use(errorHandler);
 
 async function startServer() {
   if (!process.env.JWT_SECRET) {
