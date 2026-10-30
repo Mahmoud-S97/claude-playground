@@ -2,18 +2,14 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ConfirmDeleteDialog from './ConfirmDeleteDialog'
 import PriorityButtonGroup from './PriorityButtonGroup'
-
-// <input type="datetime-local"> wants "YYYY-MM-DDTHH:mm", our stored
-// dueAt strings carry seconds too.
-function toDateTimeLocalValue(dueAt) {
-  return dueAt.slice(0, 16)
-}
+import { defaultDueInput } from './todoDraft'
 
 const inputClasses =
   'w-full rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2 text-sm text-neutral-900 outline-none transition-colors focus:border-transparent focus:ring-2 focus:ring-purple-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white'
 
 // mode "add": a new, unsaved card (no Delete). mode "edit": an existing card.
-function TodoModal({ mode = 'edit', draft, onChange, onApply, onDelete, onClose }) {
+// `error` is a message to show (usually the server's, already translated).
+function TodoModal({ mode = 'edit', draft, onChange, onApply, onDelete, onClose, isSaving = false, error = null }) {
   const { t } = useTranslation()
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
   const isAddMode = mode === 'add'
@@ -37,6 +33,24 @@ function TodoModal({ mode = 'edit', draft, onChange, onApply, onDelete, onClose 
       ...draft,
       subtasks: draft.subtasks.map((task, i) => (i === index ? { ...task, ...changes } : task)),
     })
+  }
+
+  // Typing a title in an empty slot suggests tomorrow 09:00; clearing that title
+  // again removes the suggestion (a date the user picked themselves stays).
+  function updateSubtaskTitle(index, title) {
+    const task = draft.subtasks[index]
+    if (title.trim() && !task.dueAt) {
+      updateSubtask(index, { title, dueAt: defaultDueInput(), isDateSuggested: true })
+    } else if (!title.trim() && !task.id && task.isDateSuggested) {
+      updateSubtask(index, { title, dueAt: '', isDateSuggested: false })
+    } else {
+      updateSubtask(index, { title })
+    }
+  }
+
+  function confirmDelete() {
+    setIsConfirmingDelete(false)
+    onDelete()
   }
 
   return (
@@ -91,7 +105,7 @@ function TodoModal({ mode = 'edit', draft, onChange, onApply, onDelete, onClose 
 
           <div className="flex flex-col gap-4">
             {draft.subtasks.map((task, index) => (
-              <div key={task.id} className="flex flex-col gap-1.5">
+              <div key={task.key} className="flex flex-col gap-1.5">
                 <label
                   htmlFor={`todo-task-${index}-title`}
                   className="text-sm font-medium text-neutral-700 dark:text-neutral-300"
@@ -103,14 +117,14 @@ function TodoModal({ mode = 'edit', draft, onChange, onApply, onDelete, onClose 
                     id={`todo-task-${index}-title`}
                     type="text"
                     value={task.title}
-                    onChange={(event) => updateSubtask(index, { title: event.target.value })}
+                    onChange={(event) => updateSubtaskTitle(index, event.target.value)}
                     className={`sm:flex-1 ${inputClasses}`}
                   />
                   <input
                     id={`todo-task-${index}-due`}
                     type="datetime-local"
-                    value={toDateTimeLocalValue(task.dueAt)}
-                    onChange={(event) => updateSubtask(index, { dueAt: `${event.target.value}:00` })}
+                    value={task.dueAt}
+                    onChange={(event) => updateSubtask(index, { dueAt: event.target.value, isDateSuggested: false })}
                     className={`sm:w-56 [color-scheme:light] dark:[color-scheme:dark] ${inputClasses}`}
                   />
                 </div>
@@ -144,12 +158,19 @@ function TodoModal({ mode = 'edit', draft, onChange, onApply, onDelete, onClose 
           </div>
         </div>
 
+        {error && (
+          <p role="alert" className="mt-5 rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:bg-rose-950/50 dark:text-rose-300">
+            {error}
+          </p>
+        )}
+
         <div className="mt-6 flex items-center gap-3">
           {!isAddMode && (
             <button
               type="button"
+              disabled={isSaving}
               onClick={() => setIsConfirmingDelete(true)}
-              className="rounded-lg border border-rose-300 px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-950/50"
+              className="rounded-lg border border-rose-300 px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-950/50"
             >
               {t('common.delete')}
             </button>
@@ -164,17 +185,18 @@ function TodoModal({ mode = 'edit', draft, onChange, onApply, onDelete, onClose 
             </button>
             <button
               type="button"
+              disabled={isSaving}
               onClick={onApply}
-              className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-700 active:bg-purple-800"
+              className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-700 active:bg-purple-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {t('common.applyChanges')}
+              {isSaving ? t('editModal.saving') : t('common.applyChanges')}
             </button>
           </div>
         </div>
       </div>
 
       {isConfirmingDelete && (
-        <ConfirmDeleteDialog onConfirm={onDelete} onCancel={() => setIsConfirmingDelete(false)} />
+        <ConfirmDeleteDialog onConfirm={confirmDelete} onCancel={() => setIsConfirmingDelete(false)} />
       )}
     </div>
   )

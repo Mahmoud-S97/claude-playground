@@ -11,12 +11,14 @@ function SignInForm({ onSwitchToSignUp }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  // Stores which message to show, not the translated text itself, so it
-  // re-translates automatically if the language changes while it's visible.
+  // Client-side checks store an i18n key; server errors store the server's
+  // message, which it already sent in the user's language.
   const [errorKey, setErrorKey] = useState(null)
+  const [serverError, setServerError] = useState(null)
 
   const handleSubmit = async (event) => {
     event.preventDefault()
+    setServerError(null)
 
     const trimmedUsername = username.trim()
     const trimmedPassword = password.trim()
@@ -36,8 +38,8 @@ function SignInForm({ onSwitchToSignUp }) {
     try {
       await login(trimmedUsername, trimmedPassword)
     } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        setErrorKey('auth.signIn.error')
+      if (error instanceof ApiError && error.status > 0) {
+        setServerError(error.message)
       } else {
         setErrorKey('auth.signIn.serverError')
       }
@@ -66,9 +68,9 @@ function SignInForm({ onSwitchToSignUp }) {
         onChange={(event) => setPassword(event.target.value)}
       />
 
-      {errorKey && (
+      {(errorKey || serverError) && (
         <p className="text-sm text-red-600 dark:text-red-400" role="alert">
-          {t(errorKey)}
+          {serverError ?? t(errorKey)}
         </p>
       )}
 

@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { getErrorMessage } from '../api/http'
 import TodoModal from './TodoModal'
-
-const PRIORITY_ORDER = ['low', 'medium', 'high']
+import { todoToDraft } from './todoDraft'
 
 const PRIORITY_STYLES = {
   high: 'bg-rose-500/15 text-rose-600 dark:text-rose-400',
@@ -27,55 +27,44 @@ function formatDueAt(dueAt) {
   return dueFormatter.format(new Date(dueAt))
 }
 
-function TodoCard({ todo }) {
+// Shows one card from the server. Changes go through the callbacks
+// (from useTodos); the card itself only holds the open modal's form state.
+function TodoCard({ todo, onToggleSubtask, onSave, onDelete }) {
   const { t } = useTranslation()
-  const [title, setTitle] = useState(todo.title)
-  const [priority, setPriority] = useState(todo.priority)
-  const [subtasks, setSubtasks] = useState(() =>
-    [...todo.subtasks].sort(
-      (a, b) => PRIORITY_ORDER.indexOf(a.priority) - PRIORITY_ORDER.indexOf(b.priority),
-    ),
-  )
-  const [isDeleted, setIsDeleted] = useState(false)
+  const { title, priority, subtasks } = todo
   const [draft, setDraft] = useState(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveError, setSaveError] = useState(null)
 
   const isFinished = subtasks.every((task) => task.completed)
   const doneCount = subtasks.filter((task) => task.completed).length
 
-  if (isDeleted) return null
-
-  function toggleTask(event, index) {
+  function toggleTask(event, subtaskId) {
     event.stopPropagation()
-    setSubtasks((current) => {
-      const next = current.map((task) => ({ ...task }))
-      next[index].completed = !next[index].completed
-      return next
-    })
+    onToggleSubtask(todo, subtaskId)
   }
 
   function openModal() {
-    setDraft({
-      title,
-      priority,
-      subtasks: subtasks.map((task) => ({ ...task })),
-      finished: isFinished,
-    })
+    setSaveError(null)
+    setDraft(todoToDraft(todo))
   }
 
   function closeModal() {
     setDraft(null)
   }
 
-  function applyChanges() {
-    setTitle(draft.title)
-    setPriority(draft.priority)
-    setSubtasks(draft.subtasks.map((task) => ({ ...task, completed: draft.finished })))
-    setDraft(null)
-  }
-
-  function handleDelete() {
-    setIsDeleted(true)
-    setDraft(null)
+  // Keeps the modal open with the server's message if the request fails.
+  async function runAndClose(action) {
+    setIsSaving(true)
+    setSaveError(null)
+    try {
+      await action()
+      setDraft(null)
+    } catch (error) {
+      setSaveError(getErrorMessage(error, t))
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -119,7 +108,7 @@ function TodoCard({ todo }) {
         </div>
 
         <div className="divide-y divide-neutral-900/10 dark:divide-white/10">
-          {subtasks.map((task, index) => (
+          {subtasks.map((task) => (
             <div key={task.id} className="flex items-center gap-3 py-3 first:pt-2.5 last:pb-0">
               <button
                 type="button"
@@ -127,7 +116,7 @@ function TodoCard({ todo }) {
                 aria-label={t(task.completed ? 'todoCard.markNotDone' : 'todoCard.markDone', {
                   title: task.title,
                 })}
-                onClick={(event) => toggleTask(event, index)}
+                onClick={(event) => toggleTask(event, task.id)}
                 className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full transition-colors ${
                   task.completed
                     ? 'bg-emerald-500 shadow-[0_2px_8px_rgba(16,185,129,0.45)]'
@@ -188,9 +177,11 @@ function TodoCard({ todo }) {
         <TodoModal
           draft={draft}
           onChange={setDraft}
-          onApply={applyChanges}
-          onDelete={handleDelete}
+          onApply={() => runAndClose(() => onSave(todo, draft))}
+          onDelete={() => runAndClose(() => onDelete(todo.id))}
           onClose={closeModal}
+          isSaving={isSaving}
+          error={saveError}
         />
       )}
     </>

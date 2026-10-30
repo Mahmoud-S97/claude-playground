@@ -16,7 +16,6 @@
     },
     "signIn": {
       "submit": "Sign In",
-      "error": "Invalid username or password",
       "noAccount": "Don't have an account?",
       "signUpLink": "Sign Up",
       "usernameInvalid": "Username must start with a letter and contain only letters, numbers, or underscores (7–25 characters)",
@@ -31,7 +30,6 @@
       "signInLink": "Sign In",
       "usernameInvalid": "Username must start with a letter and contain only letters, numbers, or underscores (7–25 characters)",
       "passwordInvalid": "Password must be 6–25 characters, with no spaces",
-      "usernameTaken": "This username is already taken",
       "serverError": "Something went wrong. Please try again",
       "submitting": "Creating account…"
     }
@@ -63,7 +61,10 @@
       "One task at a time — every box you check moves you closer to a done day.",
       "Progress isn't loud — it's just today's list, finished one item at a time.",
       "Future you is built by what you finish today, not what you plan for tomorrow."
-    ]
+    ],
+    "loading": "Loading your cards…",
+    "retry": "Try again",
+    "empty": "No cards yet. Tap + to add your first one."
   },
   "todoCard": {
     "finished": "Finished",
@@ -79,11 +80,15 @@
     "cardTitleLabel": "Card title",
     "cardPriorityLabel": "Card-Level Priority",
     "taskLabel": "Task {{number}}",
-    "markFinished": "Mark card as Finished"
+    "markFinished": "Mark card as Finished",
+    "saving": "Saving…"
   },
   "confirmDelete": {
     "ariaLabel": "Confirm delete",
     "title": "Delete this todo card?",
-    "description": "This removes the card and all 3 tasks. This can't be undone."
+    "description": "This removes the card and all of its tasks. This can't be undone."
+  },
+  "errors": {
+    "network": "Can't reach the server. Check your connection and try again."
   }
 }

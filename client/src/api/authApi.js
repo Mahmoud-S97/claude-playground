@@ -1,50 +1,13 @@
-import i18n from '../i18n'
+import { ApiError, request, sendJson } from './http'
 
-export class ApiError extends Error {
-  constructor(message, status) {
-    super(message)
-    this.name = 'ApiError'
-    this.status = status
-  }
-}
-
-// Relative URLs: Vite proxies /api to the server in dev, so requests are
-// same-origin and the httpOnly auth cookie goes along automatically.
-async function request(path, options = {}) {
-  let response
-  try {
-    response = await fetch(path, {
-      ...options,
-      // The server replies with messages in this language.
-      headers: { ...options.headers, 'Accept-Language': i18n.language },
-    })
-  } catch {
-    throw new ApiError('Network request failed', 0)
-  }
-
-  const data = await response.json().catch(() => null)
-
-  if (!response.ok) {
-    throw new ApiError(data?.message ?? 'Request failed', response.status)
-  }
-
-  return data
-}
-
-function postJson(path, body) {
-  return request(path, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
-}
+export { ApiError }
 
 export function signUp(username, password) {
-  return postJson('/api/auth/signup', { username, password })
+  return sendJson('/api/auth/signup', 'POST', { username, password })
 }
 
 export function login(username, password) {
-  return postJson('/api/auth/login', { username, password })
+  return sendJson('/api/auth/login', 'POST', { username, password })
 }
 
 export function logout() {

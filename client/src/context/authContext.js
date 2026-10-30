@@ -1,9 +1,11 @@
 import { createContext, createElement, useCallback, useEffect, useMemo, useState } from 'react'
 import * as authApi from '../api/authApi'
+import { useToast } from '../hooks/toast/useToast'
 
 export const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
+  const { showToast } = useToast()
   const [user, setUser] = useState(null)
   const [isCheckingSession, setIsCheckingSession] = useState(true)
 
@@ -26,25 +28,34 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  // login/signUp throw ApiError on failure so each form can show its own message.
-  // Responses are { code, message, user }.
-  const login = useCallback(async (username, password) => {
-    const { user: loggedInUser } = await authApi.login(username, password)
-    setUser(loggedInUser)
-    return loggedInUser
-  }, [])
+  // login/signUp throw ApiError on failure so each form can show the server's
+  // message. On success, responses are { code, message, user }.
+  const login = useCallback(
+    async (username, password) => {
+      const { user: loggedInUser, message } = await authApi.login(username, password)
+      setUser(loggedInUser)
+      showToast(message)
+      return loggedInUser
+    },
+    [showToast],
+  )
 
-  const signUp = useCallback(async (username, password) => {
-    const { user: newUser } = await authApi.signUp(username, password)
-    setUser(newUser)
-    return newUser
-  }, [])
+  const signUp = useCallback(
+    async (username, password) => {
+      const { user: newUser, message } = await authApi.signUp(username, password)
+      setUser(newUser)
+      showToast(message)
+      return newUser
+    },
+    [showToast],
+  )
 
   const logout = useCallback(async () => {
     // Log out locally even if the request fails; the cookie expires on its own.
-    await authApi.logout().catch(() => {})
+    const response = await authApi.logout().catch(() => null)
     setUser(null)
-  }, [])
+    showToast(response?.message)
+  }, [showToast])
 
   const value = useMemo(
     () => ({

@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { getErrorMessage } from '../api/http'
 import FloatingActionButton from '../components/FloatingActionButton'
 import PlusIcon from '../components/icons/PlusIcon'
 import TodoCard from '../components/TodoCard'
 import TodoModal from '../components/TodoModal'
-import { createEmptyTodoDraft, draftToTodo } from '../components/todoDraft'
+import { createEmptyTodoDraft } from '../components/todoDraft'
 import { useAuth } from '../hooks/auth/useAuth'
+import { useTodos } from '../hooks/todos/useTodos'
 import { useTypewriter } from '../hooks/useTypewriter'
-import mockData from '../../mock-data/data.json'
 
 const SUBTITLE_ROTATE_MS = 7000
 
@@ -22,14 +23,30 @@ function HomePage() {
   const { t } = useTranslation()
   const { user } = useAuth()
   const username = user?.username
-  // Front-end only for now: new cards live in local state until the todos API exists.
-  const [todos, setTodos] = useState(mockData.todos)
+  const { todos, isLoading, loadError, loadTodos, createTodo, saveTodo, deleteTodo, toggleSubtask } =
+    useTodos()
   const [newTodoDraft, setNewTodoDraft] = useState(null)
+  const [isCreating, setIsCreating] = useState(false)
+  const [createError, setCreateError] = useState(null)
   const [subtitleIndex, setSubtitleIndex] = useState(0)
 
-  function addTodo() {
-    setTodos((current) => [...current, draftToTodo(newTodoDraft)])
-    setNewTodoDraft(null)
+  function openAddModal() {
+    setCreateError(null)
+    setNewTodoDraft(createEmptyTodoDraft())
+  }
+
+  // Keeps the modal open with the server's message if creating fails.
+  async function addTodo() {
+    setIsCreating(true)
+    setCreateError(null)
+    try {
+      await createTodo(newTodoDraft)
+      setNewTodoDraft(null)
+    } catch (error) {
+      setCreateError(getErrorMessage(error, t))
+    } finally {
+      setIsCreating(false)
+    }
   }
 
   const subtitles = t('home.subtitles', { returnObjects: true })
@@ -89,16 +106,40 @@ function HomePage() {
         </section>
 
         <div className="mt-8">
-          {/* TODO: render the real todo list once the backend/API exists. */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            {todos.map((todo) => (
-              <TodoCard key={todo.id} todo={todo} />
-            ))}
-          </div>
+          {isLoading ? (
+            <p role="status" className="py-16 text-center text-sm text-neutral-500 dark:text-neutral-400">
+              {t('home.loading')}
+            </p>
+          ) : loadError ? (
+            <div role="alert" className="flex flex-col items-center gap-3 py-16 text-center">
+              <p className="text-sm text-rose-600 dark:text-rose-400">{loadError}</p>
+              <button
+                type="button"
+                onClick={loadTodos}
+                className="cursor-pointer rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+              >
+                {t('home.retry')}
+              </button>
+            </div>
+          ) : todos.length === 0 ? (
+            <p className="py-16 text-center text-sm text-neutral-500 dark:text-neutral-400">{t('home.empty')}</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              {todos.map((todo) => (
+                <TodoCard
+                  key={todo.id}
+                  todo={todo}
+                  onToggleSubtask={toggleSubtask}
+                  onSave={saveTodo}
+                  onDelete={deleteTodo}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      <FloatingActionButton label={t('home.addTodo')} onClick={() => setNewTodoDraft(createEmptyTodoDraft())}>
+      <FloatingActionButton label={t('home.addTodo')} onClick={openAddModal}>
         <PlusIcon className="h-7 w-7" />
       </FloatingActionButton>
 
@@ -109,6 +150,8 @@ function HomePage() {
           onChange={setNewTodoDraft}
           onApply={addTodo}
           onClose={() => setNewTodoDraft(null)}
+          isSaving={isCreating}
+          error={createError}
         />
       )}
     </main>
