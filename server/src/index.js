@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import express from "express";
 import { connectDB } from "./config/db.js";
 import { apiNotFound, errorHandler } from "./middleware/errorHandlers.js";
+import { detectLanguage } from "./middleware/language.js";
 import authRoutes from "./routes/authRoutes.js";
 import todoRoutes from "./routes/todoRoutes.js";
 
@@ -17,6 +18,8 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Before express.json() so even a malformed-body error gets the right language.
+app.use(detectLanguage);
 app.use(express.json());
 app.use(cookieParser());
 

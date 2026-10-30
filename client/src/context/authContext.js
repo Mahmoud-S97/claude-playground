@@ -27,14 +27,15 @@ export function AuthProvider({ children }) {
   }, [])
 
   // login/signUp throw ApiError on failure so each form can show its own message.
+  // Responses are { code, message, user }.
   const login = useCallback(async (username, password) => {
-    const loggedInUser = await authApi.login(username, password)
+    const { user: loggedInUser } = await authApi.login(username, password)
     setUser(loggedInUser)
     return loggedInUser
   }, [])
 
   const signUp = useCallback(async (username, password) => {
-    const newUser = await authApi.signUp(username, password)
+    const { user: newUser } = await authApi.signUp(username, password)
     setUser(newUser)
     return newUser
   }, [])

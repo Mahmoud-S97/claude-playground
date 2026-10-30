@@ -1,9 +1,17 @@
 import mongoose from "mongoose";
-import Todo, { MAX_SUBTASKS } from "../models/Todo.js";
+import Todo, { MAX_SUBTASKS, MAX_TITLE_LENGTH } from "../models/Todo.js";
+import { sendError, sendSuccess } from "../utils/apiResponse.js";
 
 const SUBTASK_FIELDS = ["title", "priority", "completed", "dueAt"];
 
-class BadRequestError extends Error {}
+// Thrown for request problems we detect ourselves; carries a message code.
+class BadRequestError extends Error {
+  constructor(code, params) {
+    super(code);
+    this.code = code;
+    this.params = params;
+  }
+}
 
 function hasValue(value) {
   return value !== undefined && value !== null && value !== "";
@@ -27,19 +35,57 @@ function filledSubtasksFromSlots(slots) {
     const hasDate = hasValue(slot?.dueAt);
 
     if (!title && !hasDate) continue;
-    if (!title) throw new BadRequestError("A subtask with a due date needs a title");
-    if (!hasDate) throw new BadRequestError("Subtask due date is required");
+    if (!title) throw new BadRequestError("SUBTASK_DATE_WITHOUT_TITLE");
+    if (!hasDate) throw new BadRequestError("SUBTASK_DUE_DATE_REQUIRED");
 
     filled.push({ ...pickSubtaskFields(slot), title });
   }
 
-  if (filled.length === 0) {
-    throw new BadRequestError("Fill at least one subtask with a title and a due date");
-  }
+  if (filled.length === 0) throw new BadRequestError("SUBTASK_REQUIRED");
   if (filled.length > MAX_SUBTASKS) {
-    throw new BadRequestError(`A card can have at most ${MAX_SUBTASKS} subtasks`);
+    throw new BadRequestError("SUBTASK_LIMIT_REACHED", { max: MAX_SUBTASKS });
   }
   return filled;
+}
+
+// Turns a Mongoose validation error into one of our message codes, preferring
+// the most specific field error (e.g. "subtasks.1.title" -> SUBTASK_TITLE_REQUIRED).
+function codeForValidationError(error) {
+  const fieldErrors = Object.entries(error.errors);
+
+  for (const [path, fieldError] of fieldErrors) {
+    if (path === "subtasks") continue;
+    const field = path.split(".").pop();
+    const isSubtask = path.startsWith("subtasks.");
+
+    if (field === "title" && fieldError.kind === "required") {
+      return { code: isSubtask ? "SUBTASK_TITLE_REQUIRED" : "TODO_TITLE_REQUIRED" };
+    }
+    if (field === "title" && fieldError.kind === "maxlength") {
+      return { code: "TITLE_TOO_LONG", params: { max: MAX_TITLE_LENGTH } };
+    }
+    if (field === "priority") return { code: "INVALID_PRIORITY" };
+    if (field === "dueAt") {
+      return { code: fieldError.kind === "required" ? "SUBTASK_DUE_DATE_REQUIRED" : "INVALID_DUE_DATE" };
+    }
+  }
+
+  if (error.errors.subtasks) {
+    return { code: "SUBTASK_COUNT_INVALID", params: { max: MAX_SUBTASKS } };
+  }
+  return { code: "INVALID_TODO_DATA" };
+}
+
+function handleError(req, res, error, action) {
+  if (error instanceof BadRequestError) {
+    return sendError(req, res, 400, error.code, error.params);
+  }
+  if (error instanceof mongoose.Error.ValidationError) {
+    const { code, params } = codeForValidationError(error);
+    return sendError(req, res, 400, code, params);
+  }
+  console.error(`Failed to ${action}:`, error);
+  return sendError(req, res, 500, "SERVER_ERROR");
 }
 
 function findOwnTodo(req) {
@@ -47,35 +93,20 @@ function findOwnTodo(req) {
   return Todo.findOne({ _id: req.params.id, userId: req.user._id });
 }
 
-function todoNotFound(res) {
-  return res.status(404).json({ message: "Todo not found" });
-}
-
-function handleError(res, error, action) {
-  if (error instanceof BadRequestError) {
-    return res.status(400).json({ message: error.message });
-  }
-  if (error instanceof mongoose.Error.ValidationError) {
-    const message = Object.values(error.errors)[0]?.message ?? "Invalid todo";
-    return res.status(400).json({ message });
-  }
-  console.error(`Failed to ${action}:`, error);
-  return res.status(500).json({ message: "Something went wrong, please try again" });
-}
-
+// A plain read: returns just the array, no message.
 export async function listTodos(req, res) {
   try {
     const todos = await Todo.find({ userId: req.user._id }).sort({ createdAt: 1 });
     return res.status(200).json(todos);
   } catch (error) {
-    return handleError(res, error, "list todos");
+    return handleError(req, res, error, "list todos");
   }
 }
 
 export async function createTodo(req, res) {
   try {
     if (typeof req.body.title !== "string" || !req.body.title.trim()) {
-      throw new BadRequestError("Card title is required");
+      throw new BadRequestError("TODO_TITLE_REQUIRED");
     }
 
     const todo = await Todo.create({
@@ -84,9 +115,9 @@ export async function createTodo(req, res) {
       priority: req.body.priority,
       subtasks: filledSubtasksFromSlots(req.body.subtasks),
     });
-    return res.status(201).json(todo);
+    return sendSuccess(req, res, 201, "TODO_CREATED", { todo });
   } catch (error) {
-    return handleError(res, error, "create todo");
+    return handleError(req, res, error, "create todo");
   }
 }
 
@@ -94,26 +125,26 @@ export async function createTodo(req, res) {
 export async function updateTodo(req, res) {
   try {
     const todo = await findOwnTodo(req);
-    if (!todo) return todoNotFound(res);
+    if (!todo) return sendError(req, res, 404, "TODO_NOT_FOUND");
 
     if (req.body.title !== undefined) todo.title = req.body.title;
     if (req.body.priority !== undefined) todo.priority = req.body.priority;
     await todo.save();
-    return res.status(200).json(todo);
+    return sendSuccess(req, res, 200, "TODO_UPDATED", { todo });
   } catch (error) {
-    return handleError(res, error, "update todo");
+    return handleError(req, res, error, "update todo");
   }
 }
 
 export async function deleteTodo(req, res) {
   try {
-    if (!mongoose.isValidObjectId(req.params.id)) return todoNotFound(res);
-
-    const deleted = await Todo.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
-    if (!deleted) return todoNotFound(res);
-    return res.status(204).end();
+    const deleted = mongoose.isValidObjectId(req.params.id)
+      ? await Todo.findOneAndDelete({ _id: req.params.id, userId: req.user._id })
+      : null;
+    if (!deleted) return sendError(req, res, 404, "TODO_NOT_FOUND");
+    return sendSuccess(req, res, 200, "TODO_DELETED");
   } catch (error) {
-    return handleError(res, error, "delete todo");
+    return handleError(req, res, error, "delete todo");
   }
 }
 
@@ -121,17 +152,17 @@ export async function deleteTodo(req, res) {
 export async function addSubtask(req, res) {
   try {
     const todo = await findOwnTodo(req);
-    if (!todo) return todoNotFound(res);
+    if (!todo) return sendError(req, res, 404, "TODO_NOT_FOUND");
 
     if (todo.subtasks.length >= MAX_SUBTASKS) {
-      return res.status(400).json({ message: `A card can have at most ${MAX_SUBTASKS} subtasks` });
+      return sendError(req, res, 400, "SUBTASK_LIMIT_REACHED", { max: MAX_SUBTASKS });
     }
 
     todo.subtasks.push(pickSubtaskFields(req.body));
     await todo.save();
-    return res.status(201).json(todo);
+    return sendSuccess(req, res, 201, "SUBTASK_ADDED", { todo });
   } catch (error) {
-    return handleError(res, error, "add subtask");
+    return handleError(req, res, error, "add subtask");
   }
 }
 
@@ -140,17 +171,17 @@ export async function addSubtask(req, res) {
 export async function updateSubtask(req, res) {
   try {
     const todo = await findOwnTodo(req);
-    if (!todo) return todoNotFound(res);
+    if (!todo) return sendError(req, res, 404, "TODO_NOT_FOUND");
 
     const subtask = mongoose.isValidObjectId(req.params.subtaskId)
       ? todo.subtasks.id(req.params.subtaskId)
       : null;
-    if (!subtask) return res.status(404).json({ message: "Subtask not found" });
+    if (!subtask) return sendError(req, res, 404, "SUBTASK_NOT_FOUND");
 
     subtask.set(pickSubtaskFields(req.body));
     await todo.save();
-    return res.status(200).json(todo);
+    return sendSuccess(req, res, 200, "SUBTASK_UPDATED", { todo });
   } catch (error) {
-    return handleError(res, error, "update subtask");
+    return handleError(req, res, error, "update subtask");
   }
 }

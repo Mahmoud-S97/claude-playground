@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
+import { sendError, sendSuccess } from "../utils/apiResponse.js";
 import { clearAuthCookie, issueAuthCookie } from "../utils/authCookie.js";
 import { isValidPassword, USERNAME_PATTERN } from "../utils/validation.js";
 
@@ -18,34 +19,29 @@ export async function signUp(req, res) {
   const password = req.body.password?.trim();
 
   if (!username || !password) {
-    return res.status(400).json({ message: "Username and password are required" });
+    return sendError(req, res, 400, "AUTH_FIELDS_REQUIRED");
   }
-
   if (!USERNAME_PATTERN.test(username)) {
-    return res.status(400).json({
-      message:
-        "Username must start with a letter and contain only letters, numbers, or underscores (7–25 characters)",
-    });
+    return sendError(req, res, 400, "AUTH_USERNAME_INVALID");
   }
-
   if (!isValidPassword(password)) {
-    return res.status(400).json({ message: "Password must be 6–25 characters, with no spaces" });
+    return sendError(req, res, 400, "AUTH_PASSWORD_INVALID");
   }
 
   try {
     const existingUser = await User.findOne({ username });
     if (existingUser) {
-      return res.status(409).json({ message: "Username is already taken" });
+      return sendError(req, res, 409, "AUTH_USERNAME_TAKEN");
     }
 
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
     const user = await User.create({ username, password: hashedPassword });
 
     issueAuthCookie(res, user._id);
-    return res.status(201).json(toPublicUser(user));
+    return sendSuccess(req, res, 201, "AUTH_SIGNED_UP", { user: toPublicUser(user) });
   } catch (error) {
     console.error("Sign up failed:", error);
-    return res.status(500).json({ message: "Something went wrong, please try again" });
+    return sendError(req, res, 500, "SERVER_ERROR");
   }
 }
 
@@ -54,33 +50,30 @@ export async function logIn(req, res) {
   const password = req.body.password?.trim();
 
   if (!username || !password) {
-    return res.status(400).json({ message: "Username and password are required" });
+    return sendError(req, res, 400, "AUTH_FIELDS_REQUIRED");
   }
 
   try {
     const user = await User.findOne({ username }).select("+password");
-    if (!user) {
-      return res.status(401).json({ message: "Invalid username or password" });
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: "Invalid username or password" });
+    // Same message for unknown user and wrong password, so usernames can't be probed.
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return sendError(req, res, 401, "AUTH_INVALID_CREDENTIALS");
     }
 
     issueAuthCookie(res, user._id);
-    return res.status(200).json(toPublicUser(user));
+    return sendSuccess(req, res, 200, "AUTH_LOGGED_IN", { user: toPublicUser(user) });
   } catch (error) {
     console.error("Login failed:", error);
-    return res.status(500).json({ message: "Something went wrong, please try again" });
+    return sendError(req, res, 500, "SERVER_ERROR");
   }
 }
 
+// A plain read: returns just the user, no message.
 export function getMe(req, res) {
   return res.status(200).json(toPublicUser(req.user));
 }
 
 export function logOut(req, res) {
   clearAuthCookie(res);
-  return res.status(204).end();
+  return sendSuccess(req, res, 200, "AUTH_LOGGED_OUT");
 }

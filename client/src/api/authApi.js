@@ -1,3 +1,5 @@
+import i18n from '../i18n'
+
 export class ApiError extends Error {
   constructor(message, status) {
     super(message)
@@ -11,7 +13,11 @@ export class ApiError extends Error {
 async function request(path, options = {}) {
   let response
   try {
-    response = await fetch(path, options)
+    response = await fetch(path, {
+      ...options,
+      // The server replies with messages in this language.
+      headers: { ...options.headers, 'Accept-Language': i18n.language },
+    })
   } catch {
     throw new ApiError('Network request failed', 0)
   }
